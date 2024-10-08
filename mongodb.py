@@ -101,7 +101,7 @@ class MongoDB:
                     "from": "CtD",
                     "localField": "_id",
                     "foreignField": "target",
-                    "as": "treatments"
+                    "as": "treatments_id"
                 }
             },
             {
@@ -109,7 +109,7 @@ class MongoDB:
                     "from": "CpD",
                     "localField": "_id",
                     "foreignField": "target",
-                    "as": "palliates"
+                    "as": "palliates_id"
                 }
             },
             {
@@ -117,7 +117,7 @@ class MongoDB:
                     "from": "DaG",
                     "localField": "_id",
                     "foreignField": "source",
-                    "as": "genes"
+                    "as": "genes_id"
                 }
             },
             {
@@ -129,7 +129,28 @@ class MongoDB:
                 }
             },
             {
-                "$unwind": "$occurs_id"
+                "$lookup": {
+                    "from": "Compound",
+                    "localField": "treatments_id.source",
+                    "foreignField": "_id",
+                    "as": "treatments"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "Compound",
+                    "localField": "palliates_id.source",
+                    "foreignField": "_id",
+                    "as": "palliates"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "Gene",
+                    "localField": "genes_id.target",
+                    "foreignField": "_id",
+                    "as": "genes"
+                }
             },
             {
                 "$lookup": {
@@ -142,16 +163,16 @@ class MongoDB:
             {
                 "$project": {
                     "name": 1,
-                    "treatments.source": 1,
-                    "palliates.source": 1,
-                    "genes.target": 1,
-                    "occurs_id.target": 1,
+                    "treatments.name": 1,
+                    "palliates.name": 1,
+                    "genes.name": 1,
                     "occurs.name": 1,
                 }
             }
         ]
         diseases = self.db["Disease"]
         result = list(diseases.aggregate(query))
+        print(result)
 
         # Print the result
         self.printQueryOneResult(result)
@@ -162,19 +183,19 @@ class MongoDB:
         print(f"Name: {result[0]['name']}")
         treatments = []
         for treatment in result[0]['treatments']:
-            treatments.append(treatment["source"])
+            treatments.append(treatment["name"])
 
         print(f"Compounds that treat disease: {treatments}")
 
         palliates = []
         for palliate in result[0]['palliates']:
-            palliates.append(palliate["source"])
+            palliates.append(palliate["name"])
 
         print(f"Compounds that palliates disease: {palliates}")
 
         genes = []
         for gene in result[0]['genes']:
-            genes.append(gene["target"])
+            genes.append(gene["name"])
 
         print(f"Genes that causes the disease: {genes}")
 
