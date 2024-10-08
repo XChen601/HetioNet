@@ -79,6 +79,121 @@ class MongoDB:
         self.add_all_nodes()
         self.add_all_edges()
 
+    def query_one(self, disease):
+        """
+        Given disease id:
+        - Get the name
+        - Treat disease:
+            - Compound - treats - Disease (CtD)
+        - Palliate disease:
+            - Compound - palliates - Disease (CpD)
+        - Gene names that cause this diseases: Disease - associates - Gene (DaG)
+        - Where it occurs: Disease - localizes - Anatomy (DlA)
+        :param disease:string
+        :return:list of the mongodb query result
+        """
+        query = [
+            {
+                "$match": {"_id": disease}
+            },
+            {
+                "$lookup": {
+                    "from": "CtD",
+                    "localField": "_id",
+                    "foreignField": "target",
+                    "as": "treatments"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "CpD",
+                    "localField": "_id",
+                    "foreignField": "target",
+                    "as": "palliates"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "DaG",
+                    "localField": "_id",
+                    "foreignField": "source",
+                    "as": "genes"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "DlA",
+                    "localField": "_id",
+                    "foreignField": "source",
+                    "as": "occurs_id"
+                }
+            },
+            {
+                "$unwind": "$occurs_id"
+            },
+            {
+                "$lookup": {
+                    "from": "Anatomy",
+                    "localField": "occurs_id.target",
+                    "foreignField": "_id",
+                    "as": "occurs"
+                }
+            },
+            {
+                "$project": {
+                    "name": 1,
+                    "treatments.source": 1,
+                    "palliates.source": 1,
+                    "genes.target": 1,
+                    "occurs_id.target": 1,
+                    "occurs.name": 1,
+                }
+            }
+        ]
+        diseases = self.db["Disease"]
+        result = list(diseases.aggregate(query))
+
+        # Print the result
+        self.printQueryOneResult(result)
+        return result
+
+    def printQueryOneResult(self, result):
+        print(f"Disease ID: {result[0]['_id']}")
+        print(f"Name: {result[0]['name']}")
+        treatments = []
+        for treatment in result[0]['treatments']:
+            treatments.append(treatment["source"])
+
+        print(f"Compounds that treat disease: {treatments}")
+
+        palliates = []
+        for palliate in result[0]['palliates']:
+            palliates.append(palliate["source"])
+
+        print(f"Compounds that palliates disease: {palliates}")
+
+        genes = []
+        for gene in result[0]['genes']:
+            genes.append(gene["target"])
+
+        print(f"Genes that causes the disease: {genes}")
+
+        occurs_list = []
+        for occurs in result[0]['occurs']:
+            occurs_list.append(occurs["name"])
+        print(f"Where it occurs: {occurs_list}")
+
+
+
+
+
+
+
+
+
+
+
+
 
 # https://github.com/hetio/hetionet/blob/main/describe/edges/metaedges.tsv
 
@@ -86,4 +201,5 @@ class MongoDB:
 
 # Run only once to create database
 mongo = MongoDB()
-mongo.create_database()
+# mongo.create_database()
+mongo.query_one("Disease::DOID:1686")
