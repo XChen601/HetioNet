@@ -204,16 +204,68 @@ class MongoDB:
             occurs_list.append(occurs["name"])
         print(f"Where it occurs: {occurs_list}")
 
+    def query_two(self):
+        """
+        Find compound where:
+        - Compound up-regulates a gene and (CuG)
+        - disease down-regulates a gene but (DdG)
+        - compound does not treat disease (CtD)
+
+        or
 
 
+        - Compound down-regulates a gene and (CdG)
+        - disease up-regulates a gene but (DuG)
+        - compound does not treat disease (CtD)
+        :return:
+        """
+        # step 1: genes where gene in CuG == gene in DdG
+        # step 2: compound where compound not in CtD
+        query = [
+            {
+                "$lookup": {
+                    "from": "DdG",
+                    "localField": "target",
+                    "foreignField": "target",
+                    "as": "gene_matches"
+                },
+            },
+            {
+                "$match": {
+                    "gene_matches": {"$ne": []}
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "CtD",
+                    "localField": "source",
+                    "foreignField": "source",
+                    "as": "compound_matches"
+                },
+            },
+            {
+                "$match": {
+                    "compound_matches": {"$size": 0} # where compound is not in CtD
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "Compound",
+                    "localField": "source",
+                    "foreignField": "_id",
+                    "as": "compound_names"
+                },
+            },
+            {
+                "$project": {
+                    "compound_names.name": 1,
+                }
+            }
+        ]
 
-
-
-
-
-
-
-
+        result = list(self.db["CuG"].aggregate(query))
+        # Assuming `result` contains the output from the aggregate query
+        print(result)
 
 
 # https://github.com/hetio/hetionet/blob/main/describe/edges/metaedges.tsv
@@ -223,4 +275,5 @@ class MongoDB:
 # Run only once to create database
 mongo = MongoDB()
 # mongo.create_database()
-mongo.query_one("Disease::DOID:1686")
+#mongo.query_one("Disease::DOID:1686")
+mongo.query_two()
