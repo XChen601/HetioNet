@@ -5,7 +5,6 @@ from mongodb import MongoDB
 app = Flask(__name__)
 CORS(app)
 
-# Initialize MongoDB class
 mongo_db = MongoDB()
 
 @app.route('/')
@@ -21,7 +20,6 @@ def query_one():
         return jsonify({"error": "Please provide a disease_id"}), 400
 
     try:
-        # Call the query_one method
         result = mongo_db.query_one(disease_id)
         print(result)
         return jsonify(result)
