@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HetioNet Project</title>
+</head>
+<body>
+
+<div class="container">
+    <h1>HetioNet Project</h1>
+    <h3>Query One:</h3>
+    <form id="queryForm">
+        <label for="diseaseId">Enter Disease ID:</label>
+        <input type="text" id="diseaseId" name="diseaseId" placeholder="Disease::DOID:0050156" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="result" class="result"></div>
+</div>
+
+<script>
+    document.getElementById('queryForm').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent form from submitting the traditional way
+
+        const diseaseId = document.getElementById('diseaseId').value;
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = ''; // Clear previous result
+
+        fetch(`http://127.0.0.1:5000/query_one?disease_id=${encodeURIComponent(diseaseId)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
+                } else {
+                    const compoundTreats = data.CtD ? data.CtD.join(', ') : 'None';
+                    const compoundPalliates = data.CpD ? data.CpD.join(', ') : 'None';
+                    const genes = data.DaG ? data.DaG.join(', ') : 'None';
+                    const anatomies = data.DlA ? data.DlA.join(', ') : 'None';
+                    const diseaseName = data.name || 'None';
+
+                    resultDiv.innerHTML = `
+                        <p><strong>Disease Name:</strong> ${diseaseName}</p>
+                        <p><strong>Compounds that treats it:</strong> ${compoundTreats}</p>
+                        <p><strong>Compounds that palliates it:</strong> ${compoundPalliates}</p>
+                        <p><strong>Genes that causes it:</strong> ${genes}</p>
+                        <p><strong>Occurs at:</strong> ${anatomies}</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+            });
+    });
+</script>
+
+</body>
+</html>
