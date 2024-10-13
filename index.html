@@ -14,10 +14,14 @@
     <form id="queryOneForm">
         <label for="diseaseId">Enter Disease ID:</label>
         <input type="text" id="diseaseId" name="diseaseId" placeholder="Disease::DOID:0050156" required>
-        <button type="submit">Submit</button>
+        <button type="submit">Execute</button>
     </form>
 
     <div id="queryOneResult" class="result"></div>
+
+    <h3>Query Two:</h3>
+    <button type="submit" id="queryTwoButton">Execute</button>
+    <div id="queryTwoResult" class="result"> </div>
 </div>
 
 <script>
@@ -59,6 +63,38 @@
                 resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
             });
     });
+
+    document.getElementById("queryTwoButton").addEventListener("click", async function() {
+        const resultDiv = document.getElementById("queryTwoResult");
+        try {
+            const response = await fetch("http://127.0.0.1:5000/query_two");
+            const data = await response.json();
+            const results = data.result;
+            console.log(data.result)
+            resultDiv.innerHTML = `
+                <p><strong>Query:</strong> MATCH (compound:Compound)-[:upregulates]->(gene:Gene),
+                (disease:Disease)-[:downregulates]->(gene)
+                WHERE NOT (compound)-[:treats]->(disease)
+                RETURN DISTINCT compound.name
+
+                UNION
+
+                MATCH (compound:Compound)-[:downregulates]->(gene:Gene),
+                      (disease:Disease)-[:upregulates]->(gene)
+                WHERE NOT (compound)-[:treats]->(disease)
+                RETURN DISTINCT compound.name
+                </p>
+                <p><strong>Num of drugs:</strong> ${results.length}</p>
+                <p><strong>Drug names:</strong> ${results}</p>
+
+            `
+
+        } catch (error) {
+            // Handle any errors
+            resultDiv.innerText = 'Error: ' + error.message;
+        }
+});
+
 </script>
 
 </body>
