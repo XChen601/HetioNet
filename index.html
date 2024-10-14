@@ -25,43 +25,43 @@
 </div>
 
 <script>
-    document.getElementById('queryOneForm').addEventListener('submit', function (event) {
+    document.getElementById('queryOneForm').addEventListener('submit', async function (event) {
         event.preventDefault(); // Prevent form from submitting the traditional way
 
         const diseaseId = document.getElementById('diseaseId').value;
         const resultDiv = document.getElementById('queryOneResult');
         resultDiv.innerHTML = ''; // Clear previous result
 
-        fetch(`http://127.0.0.1:5000/query_one?disease_id=${encodeURIComponent(diseaseId)}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
-                } else {
-                    const compoundTreats = data.CtD ? data.CtD.join(', ') : 'None';
-                    const compoundPalliates = data.CpD ? data.CpD.join(', ') : 'None';
-                    const genes = data.DaG ? data.DaG.join(', ') : 'None';
-                    const anatomies = data.DlA ? data.DlA.join(', ') : 'None';
-                    const diseaseName = data.name || 'None';
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/query_one?disease_id=${encodeURIComponent(diseaseId)}`);
 
-                    resultDiv.innerHTML = `
-                        <p><strong>Query:</strong> self.db['Disease'].find_one({"_id": ${diseaseId})</p>
-                        <p><strong>Disease Name:</strong> ${diseaseName}</p>
-                        <p><strong>Compounds that treats it:</strong> ${compoundTreats}</p>
-                        <p><strong>Compounds that palliates it:</strong> ${compoundPalliates}</p>
-                        <p><strong>Genes that causes it:</strong> ${genes}</p>
-                        <p><strong>Occurs at:</strong> ${anatomies}</p>
-                    `;
-                }
-            })
-            .catch(error => {
-                resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
-            });
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            if (data.error) {
+                resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
+            } else {
+                const compoundTreats = data.CtD ? data.CtD.join(', ') : 'None';
+                const compoundPalliates = data.CpD ? data.CpD.join(', ') : 'None';
+                const genes = data.DaG ? data.DaG.join(', ') : 'None';
+                const anatomies = data.DlA ? data.DlA.join(', ') : 'None';
+                const diseaseName = data.name || 'None';
+
+                resultDiv.innerHTML = `
+                    <p><strong>Query:</strong> self.db['Disease'].find_one({"_id": ${diseaseId})</p>
+                    <p><strong>Disease Name:</strong> ${diseaseName}</p>
+                    <p><strong>Compounds that treats it:</strong> ${compoundTreats}</p>
+                    <p><strong>Compounds that palliates it:</strong> ${compoundPalliates}</p>
+                    <p><strong>Genes that causes it:</strong> ${genes}</p>
+                    <p><strong>Occurs at:</strong> ${anatomies}</p>
+                `;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+        }
     });
 
     document.getElementById("queryTwoButton").addEventListener("click", async function() {
@@ -72,15 +72,18 @@
             const results = data.result;
             console.log(data.result)
             resultDiv.innerHTML = `
-                <p><strong>Query:</strong> MATCH (compound:Compound)-[:upregulates]->(gene:Gene),
-                (disease:Disease)-[:downregulates]->(gene)
+                <p><strong>Query:</strong>
+                MATCH (compound:Compound)-[:upregulates]->(gene:Gene),
+                      (anatomy:Anatomy)-[:downregulates]->(gene),
+                      (disease:Disease)-[:localizes]->(anatomy)
                 WHERE NOT (compound)-[:treats]->(disease)
                 RETURN DISTINCT compound.name
 
                 UNION
 
                 MATCH (compound:Compound)-[:downregulates]->(gene:Gene),
-                      (disease:Disease)-[:upregulates]->(gene)
+                      (anatomy:Anatomy)-[:upregulates]->(gene),
+                      (disease:Disease)-[:localizes]->(anatomy)
                 WHERE NOT (compound)-[:treats]->(disease)
                 RETURN DISTINCT compound.name
                 </p>
