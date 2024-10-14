@@ -1,12 +1,12 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from mongodb import MongoDB
-from neo4j_hetio import Neo4JQuery
+from neo4j_hetio import Neo4jDB
 app = Flask(__name__)
 CORS(app)
 
 mongo_db = MongoDB()
-neo4j_query = Neo4JQuery()
+neo4j_query = Neo4jDB()
 
 @app.route('/')
 def hello_world():

@@ -74,16 +74,14 @@
             resultDiv.innerHTML = `
                 <p><strong>Query:</strong>
                 MATCH (compound:Compound)-[:upregulates]->(gene:Gene),
-                      (anatomy:Anatomy)-[:downregulates]->(gene),
-                      (disease:Disease)-[:localizes]->(anatomy)
+                        (disease:Disease)-[:localizes]->(location:Anatomy)-[:downregulates]->(gene)
                 WHERE NOT (compound)-[:treats]->(disease)
                 RETURN DISTINCT compound.name
 
                 UNION
 
                 MATCH (compound:Compound)-[:downregulates]->(gene:Gene),
-                      (anatomy:Anatomy)-[:upregulates]->(gene),
-                      (disease:Disease)-[:localizes]->(anatomy)
+                        (disease:Disease)-[:localizes]->(location:Anatomy)-[:upregulates]->(gene)
                 WHERE NOT (compound)-[:treats]->(disease)
                 RETURN DISTINCT compound.name
                 </p>

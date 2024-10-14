@@ -160,7 +160,6 @@ class MongoDB:
 
 # https://github.com/hetio/hetionet/blob/main/describe/edges/metaedges.tsv
 
-# seperate the metaedges into seperate collections
 
 # Run only once to create database
 #mongo = MongoDB()
