@@ -113,8 +113,7 @@ class Neo4jDB:
         """
         result = self.session.run(query)
         compound_names = [record["compound.name"] for record in result]
-        print(compound_names)
-        print("total names:", len(compound_names))
+
         return compound_names
 # db = Neo4jDB()
 # db.create_database()
