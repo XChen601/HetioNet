@@ -11,8 +11,8 @@ def run_query_one():
     print(res)
 
 def run_query_two():
-    input('Press enter to run query two')
-    res = neo4j_query.query_two()
+    disease_id = input('Enter disease for query 2: ')
+    res = neo4j_query.query_two(disease_id)
     print(res)
 
 def create_databases():

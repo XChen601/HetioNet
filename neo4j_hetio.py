@@ -77,7 +77,7 @@ class Neo4jDB:
         edges = self.extract_edges('edges.tsv')
         self.add_all_edges(edges, nodes)
 
-    def query_two(self):
+    def query_two(self, disease_id):
         """
         Find compound where:
         - Compound upregulates a gene and (CuG)
@@ -93,16 +93,20 @@ class Neo4jDB:
         - compound does not treat disease (CtD)
 
         """
-        query = """
+        parts = disease_id.split("::")
+        disease_id = f"{parts[0].capitalize()}::{parts[1].upper()}"
+
+
+        query = f"""
         MATCH (compound:Compound)-[:upregulates]->(gene:Gene),
-                (disease:Disease)-[:localizes]->(location:Anatomy)-[:downregulates]->(gene)
+                (disease:Disease {{id: '{disease_id}'}})-[:localizes]->(location:Anatomy)-[:downregulates]->(gene)
         WHERE NOT (compound)-[:treats]->(disease)
         RETURN DISTINCT compound.name
         
         UNION
         
         MATCH (compound:Compound)-[:downregulates]->(gene:Gene),
-                (disease:Disease)-[:localizes]->(location:Anatomy)-[:upregulates]->(gene)
+                (disease:Disease {{id: '{disease_id}'}})-[:localizes]->(location:Anatomy)-[:upregulates]->(gene)
         WHERE NOT (compound)-[:treats]->(disease)
         RETURN DISTINCT compound.name
 

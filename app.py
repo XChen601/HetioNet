@@ -30,8 +30,9 @@ def query_one():
 @app.route('/query_two', methods=['GET'])
 def query_two():
     print('running query two')
+    disease_id = request.args.get('disease_id')
     try:
-        result = neo4j_query.query_two()
+        result = neo4j_query.query_two(disease_id)
         print(result)
         return jsonify({"result": result})
     except Exception as e:

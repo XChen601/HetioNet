@@ -20,7 +20,11 @@
     <div id="queryOneResult" class="result"></div>
 
     <h3>Query Two:</h3>
-    <button type="submit" id="queryTwoButton">Execute</button>
+     <form id="queryTwoForm">
+        <label for="diseaseId">Enter Disease ID:</label>
+        <input type="text" id="diseaseIdTwo" name="diseaseId" placeholder="Disease::DOID:0050156" required>
+        <button type="submit">Execute</button>
+    </form>
     <div id="queryTwoResult" class="result"> </div>
 </div>
 
@@ -64,24 +68,28 @@
         }
     });
 
-    document.getElementById("queryTwoButton").addEventListener("click", async function() {
+    document.getElementById("queryTwoForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
         const resultDiv = document.getElementById("queryTwoResult");
+        const diseaseIdTwo = document.getElementById('diseaseIdTwo').value;
         try {
-            const response = await fetch("http://127.0.0.1:5000/query_two");
+            const response = await fetch(`http://127.0.0.1:5000/query_two?disease_id=${encodeURIComponent(diseaseIdTwo)}`);
             const data = await response.json();
+            console.log(data)
             const results = data.result;
             console.log(data.result)
             resultDiv.innerHTML = `
                 <p><strong>Query:</strong>
                 MATCH (compound:Compound)-[:upregulates]->(gene:Gene),
-                        (disease:Disease)-[:localizes]->(location:Anatomy)-[:downregulates]->(gene)
+                        (disease:Disease {id: '${diseaseIdTwo}'})-[:localizes]->(location:Anatomy)-[:downregulates]->(gene)
                 WHERE NOT (compound)-[:treats]->(disease)
                 RETURN DISTINCT compound.name
 
                 UNION
 
                 MATCH (compound:Compound)-[:downregulates]->(gene:Gene),
-                        (disease:Disease)-[:localizes]->(location:Anatomy)-[:upregulates]->(gene)
+                        (disease:Disease {id: '${diseaseIdTwo}'})-[:localizes]->(location:Anatomy)-[:upregulates]->(gene)
                 WHERE NOT (compound)-[:treats]->(disease)
                 RETURN DISTINCT compound.name
                 </p>

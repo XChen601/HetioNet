@@ -86,7 +86,8 @@ class MongoDB:
         self.add_all_edges(edges, nodes)
 
     def query_one(self, disease_id):
-
+        parts = disease_id.split("::")
+        disease_id = f"{parts[0].capitalize()}::{parts[1].upper()}"
         disease_info = self.db['Disease'].find_one({"_id": disease_id})
         print(disease_info)
         return disease_info
