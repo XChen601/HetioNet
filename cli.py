@@ -7,11 +7,15 @@ neo4j_query = Neo4jDB()
 
 def run_query_one():
     disease_id = input('Enter disease for query 1: ')
+    parts = disease_id.split("::")
+    disease_id = f"{parts[0].capitalize()}::{parts[1].upper()}"
     res = mongo_db.query_one(disease_id)
     print(res)
 
 def run_query_two():
     disease_id = input('Enter disease for query 2: ')
+    parts = disease_id.split("::")
+    disease_id = f"{parts[0].capitalize()}::{parts[1].upper()}"
     res = neo4j_query.query_two(disease_id)
     print(res)
 

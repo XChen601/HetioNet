@@ -32,7 +32,11 @@
     document.getElementById('queryOneForm').addEventListener('submit', async function (event) {
         event.preventDefault(); // Prevent form from submitting the traditional way
 
-        const diseaseId = document.getElementById('diseaseId').value;
+        let diseaseId = document.getElementById('diseaseId').value;
+        let parts = diseaseId.split("::");
+        diseaseId = `${parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase()}::${parts[1].toUpperCase()}`;
+
+
         const resultDiv = document.getElementById('queryOneResult');
         resultDiv.innerHTML = ''; // Clear previous result
 
@@ -72,7 +76,11 @@
         event.preventDefault();
 
         const resultDiv = document.getElementById("queryTwoResult");
-        const diseaseIdTwo = document.getElementById('diseaseIdTwo').value;
+        let diseaseIdTwo = document.getElementById('diseaseIdTwo').value;
+
+        let parts = diseaseIdTwo.split("::");
+        diseaseIdTwo = `${parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase()}::${parts[1].toUpperCase()}`;
+
         try {
             const response = await fetch(`http://127.0.0.1:5000/query_two?disease_id=${encodeURIComponent(diseaseIdTwo)}`);
             const data = await response.json();
