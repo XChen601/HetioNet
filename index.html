@@ -50,7 +50,7 @@
             const data = await response.json();
 
             if (data.error) {
-                resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
+                resultDiv.innerHTML = `<p class="error">None</p>`;
             } else {
                 const compoundTreats = data.CtD ? data.CtD.join(', ') : 'None';
                 const compoundPalliates = data.CpD ? data.CpD.join(', ') : 'None';
@@ -68,7 +68,7 @@
                 `;
             }
         } catch (error) {
-            resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+            resultDiv.innerHTML = `<p class="error">None</p>`;
         }
     });
 
@@ -108,7 +108,7 @@
 
         } catch (error) {
             // Handle any errors
-            resultDiv.innerText = 'Error: ' + error.message;
+            resultDiv.innerText = 'None';
         }
 });
 

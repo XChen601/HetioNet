@@ -17,6 +17,7 @@ def run_query_two():
     parts = disease_id.split("::")
     disease_id = f"{parts[0].capitalize()}::{parts[1].upper()}"
     res = neo4j_query.query_two(disease_id)
+    print("Number of compounds:", len(res))
     print(res)
 
 def create_databases():
